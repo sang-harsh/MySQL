@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MySQL Study Progress</title>
+<style>
+:root{--bg:#101516;--panel:#192122;--accent:#f19a38;--green:#73c99a;--blue:#77b7cc;--text:#edf1ed;--muted:#a0aaa6;--line:#35403e}
+*{box-sizing:border-box}
+body{margin:0 auto;padding:28px 20px;max-width:920px;background:var(--bg);color:var(--text);font:16px/1.5 'Segoe UI',sans-serif}
+h1{margin:0;text-align:center;font-size:2rem;color:var(--accent)}
+.subtitle{text-align:center;color:var(--muted);margin:4px 0 24px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 auto 18px;max-width:620px}
+.stat{text-align:center;padding:12px;border-bottom:2px solid var(--line)}
+.number{font-size:1.8rem;font-weight:700;color:var(--accent)}
+.label{font-size:.75rem;color:var(--muted);text-transform:uppercase}
+.progress{height:10px;max-width:700px;margin:0 auto 10px;background:#28302e;border-radius:8px;overflow:hidden}
+.fill{height:100%;width:0;background:var(--green);transition:width .25s ease}
+.priority-stats{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin:0 0 16px;color:var(--muted);font-size:.9rem}
+.priority-stats strong{color:var(--text)}
+.streak{text-align:center;padding:12px;margin:0 auto 18px;max-width:700px;background:var(--panel);border:1px solid var(--line);border-radius:6px}
+.streak strong{color:var(--accent);font-size:1.3rem}
+.filters{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.filter{padding:6px 12px;border:1px solid var(--line);border-radius:4px;background:transparent;color:var(--text);cursor:pointer}
+.filter.active{background:var(--accent);border-color:var(--accent);color:#18201f}
+.module{margin:0 0 10px;border:1px solid var(--line);background:var(--panel);border-radius:6px;overflow:hidden}
+.module[hidden]{display:none}
+.module summary{cursor:pointer;list-style:none;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.module summary::-webkit-details-marker{display:none}
+.module summary:hover{background:#202a29}
+.name{font-weight:650;flex:1;min-width:0;overflow-wrap:anywhere}
+.priority{font-size:.72rem;text-transform:uppercase;color:var(--blue);white-space:nowrap}
+.priority[data-priority="Core"]{color:var(--green)}
+.priority[data-priority="Optional"]{color:var(--accent)}
+.status{font-size:.72rem;color:var(--muted);white-space:nowrap}
+.module-count,.duration{font-size:.82rem;color:var(--muted);white-space:nowrap}
+.module-bar{height:3px;background:#28302e}
+.module-fill{height:100%;background:var(--green)}
+.steps{padding:4px 14px 12px}
+.step{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid #2b3533}
+.step input{width:18px;height:18px;accent-color:var(--green);flex-shrink:0}
+.step label{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.step label span{overflow-wrap:anywhere}
+.step input:disabled{opacity:.5}
+.notes{margin-left:auto;color:var(--blue);font-size:.82rem;text-decoration:none}
+.notes:hover{text-decoration:underline}
+@media(max-width:560px){body{padding:20px 12px}.module summary{flex-wrap:wrap}.name{flex-basis:100%}.duration{margin-left:auto}.priority-stats{gap:12px;font-size:.8rem}h1{font-size:1.75rem}}
+</style>
+</head>
+<body>
+<h1>MySQL Study Progress</h1>
+<p class="subtitle">Full-stack interview revision</p>
+
+<div class="stats">
+  <div class="stat"><div class="number" id="done">0</div><div class="label">Checkpoints done</div></div>
+  <div class="stat"><div class="number" id="total">0</div><div class="label">Total checkpoints</div></div>
+  <div class="stat"><div class="number" id="pct">0%</div><div class="label">Complete</div></div>
+</div>
+<div class="progress"><div class="fill" id="bar"></div></div>
+<div class="priority-stats">
+  <span>Core: <strong id="core-done">0</strong>/<span id="core-total">0</span></span>
+  <span>Useful: <strong id="useful-done">0</strong>/<span id="useful-total">0</span></span>
+  <span>Optional: <strong id="optional-done">0</strong>/<span id="optional-total">0</span></span>
+</div>
+<div class="streak"><strong id="streak-count">0</strong> day study streak</div>
+<div class="filters">
+  <button class="filter active" onclick="setFilter('all', this)">All</button>
+  <button class="filter" onclick="setFilter('Core', this)">Core</button>
+  <button class="filter" onclick="setFilter('Useful', this)">Useful</button>
+  <button class="filter" onclick="setFilter('Optional', this)">Optional</button>
+  <button class="filter" onclick="setFilter('todo', this)">In progress</button>
+</div>
+<main id="content"></main>
+
+<script>
+const DATA = [
+  {id:'06',priority:'Core',name:'Joins and missing-data queries',notes:'notes/06-joins-missing-data.md',exercises:'notes/06-joins-missing-data-exercises.md'},
+  {id:'05',priority:'Core',name:'Aggregation and conditional reporting',notes:'notes/05-aggregation-reporting.md',exercises:'notes/05-aggregation-reporting-exercises.md'},
+  {id:'07',priority:'Core',name:'Subqueries and existence checks',notes:'notes/07-subqueries-existence.md',exercises:'notes/07-subqueries-existence-exercises.md'},
+  {id:'10',priority:'Core',name:'Interview query patterns',notes:'notes/10-interview-query-patterns.md',exercises:'notes/10-interview-query-patterns-exercises.md'},
+  {id:'03',priority:'Core',name:'Keys, constraints, and schema changes',notes:'notes/03-keys-constraints-schema-changes.md',exercises:'notes/03-keys-constraints-schema-changes-exercises.md'},
+  {id:'13',priority:'Core',name:'Index design',notes:'notes/13-index-design.md',exercises:'notes/13-index-design-exercises.md'},
+  {id:'11',priority:'Core',name:'Schema design and normalization',notes:'notes/11-schema-design-normalization.md',exercises:'notes/11-schema-design-normalization-exercises.md'},
+  {id:'15',priority:'Core',name:'Transactions and ACID',notes:'notes/15-transactions-acid.md',exercises:'notes/15-transactions-acid-exercises.md'},
+  {id:'02',priority:'Core',name:'Data types, NULL, and expressions',notes:'notes/02-data-types-null-expressions.md',exercises:'notes/02-data-types-null-expressions-exercises.md'},
+  {id:'01',priority:'Core',name:'SQL foundations and execution order',notes:'notes/01-sql-foundations.md',exercises:'notes/01-sql-foundations-exercises.md'},
+  {id:'04',priority:'Core',name:'Filtering, functions, and dates',notes:'notes/04-filtering-functions-dates.md',exercises:'notes/04-filtering-functions-dates-exercises.md'},
+  {id:'08',priority:'Useful',name:'CTEs and set operations',notes:'notes/08-ctes-set-operations.md',exercises:'notes/08-ctes-set-operations-exercises.md'},
+  {id:'09',priority:'Useful',name:'Window functions',notes:'notes/09-window-functions.md',exercises:'notes/09-window-functions-exercises.md'},
+  {id:'14',priority:'Useful',name:'EXPLAIN and query optimization',notes:'notes/14-explain-query-optimization.md',exercises:'notes/14-explain-query-optimization-exercises.md'},
+  {id:'21',priority:'Useful',name:'Application integration and security',notes:'notes/21-application-integration-security.md',exercises:'notes/21-application-integration-security-exercises.md'},
+  {id:'18',priority:'Useful',name:'Pagination and large-table changes',notes:'notes/18-pagination-large-table-changes.md',exercises:'notes/18-pagination-large-table-changes-exercises.md'},
+  {id:'16',priority:'Useful',name:'Isolation levels and MVCC',notes:'notes/16-isolation-mvcc.md',exercises:'notes/16-isolation-mvcc-exercises.md'},
+  {id:'17',priority:'Useful',name:'Locks, deadlocks, and safe writes',notes:'notes/17-locks-deadlocks-safe-writes.md',exercises:'notes/17-locks-deadlocks-safe-writes-exercises.md'},
+  {id:'19',priority:'Useful',name:'Views and stored objects',notes:'notes/19-views-stored-objects.md',exercises:'notes/19-views-stored-objects-exercises.md'},
+  {id:'20',priority:'Useful',name:'JSON and generated columns',notes:'notes/20-json-generated-columns.md',exercises:'notes/20-json-generated-columns-exercises.md'},
+  {id:'12',priority:'Optional',name:'InnoDB architecture and storage',notes:'notes/12-innodb-architecture.md',exercises:'notes/12-innodb-architecture-exercises.md'},
+  {id:'22',priority:'Optional',name:'Replication and recovery',notes:'notes/22-replication-recovery.md',exercises:'notes/22-replication-recovery-exercises.md'},
+  {id:'23',priority:'Optional',name:'Partitioning and scaling decisions',notes:'notes/23-partitioning-scaling.md',exercises:'notes/23-partitioning-scaling-exercises.md'},
+  {id:'24',priority:'Core',name:'Mixed interview scenarios and mock round',notes:'notes/24-mixed-interview-scenarios.md',exercises:'notes/24-mixed-interview-scenarios-exercises.md'}
+].map(module => ({...module, time:'30-60 min', steps:[
+  {id:'understand',name:'Revise the note',href:module.notes,linkName:'Notes'},
+  {id:'practice',name:'Practise the exercises',href:module.exercises,linkName:'Exercises'},
+  {id:'recall',name:'Explain and solve unaided'}
+]}));
+
+const STATE_KEY = 'mysql_study_progress_v1';
+const STREAK_KEY = 'mysql_study_streak_v1';
+let currentFilter = 'all';
+let openModules = new Set();
+
+function loadState(key, fallback) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key));
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : fallback;
+  }
+  catch { return fallback; }
+}
+
+function setFilter(filter, button) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter').forEach(item => item.classList.remove('active'));
+  button.classList.add('active');
+  render();
+}
+
+function toggleModule(id, isOpen) {
+  if (isOpen) openModules.add(id);
+  else openModules.delete(id);
+}
+
+function updateStreak() {
+  const streak = loadState(STREAK_KEY, {count:0,last:null});
+  const todayDate = new Date();
+  const yesterdayDate = new Date(todayDate);
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const today = todayDate.toDateString();
+  const yesterday = yesterdayDate.toDateString();
+  if (streak.last !== today) streak.count = streak.last === yesterday ? streak.count + 1 : 1;
+  streak.last = today;
+  localStorage.setItem(STREAK_KEY, JSON.stringify(streak));
+}
+
+function toggleCheckpoint(id, checked) {
+  const state = loadState(STATE_KEY, {});
+  state[id] = checked;
+  localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  if (checked) updateStreak();
+  render();
+}
+
+function render() {
+  const state = loadState(STATE_KEY, {});
+  let done = 0, total = 0;
+  const priorityTotals = {Core:{done:0,total:0}, Useful:{done:0,total:0}, Optional:{done:0,total:0}};
+  const focusedCheckpoint = document.activeElement.dataset.checkpoint;
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  DATA.forEach(module => {
+    const moduleDone = module.steps.filter(step => state[`${module.id}-${step.id}`] === true).length;
+    const moduleTotal = module.steps.length;
+    total += moduleTotal;
+    done += moduleDone;
+    priorityTotals[module.priority].total += moduleTotal;
+    priorityTotals[module.priority].done += moduleDone;
+    const ready = Boolean(module.notes && module.exercises);
+    const hidden = (['Core','Useful','Optional'].includes(currentFilter) && module.priority !== currentFilter) ||
+      (currentFilter === 'todo' && moduleDone === moduleTotal);
+    const section = document.createElement('details');
+    section.className = 'module';
+    section.dataset.id = module.id;
+    section.open = openModules.has(module.id);
+    section.hidden = hidden;
+    section.ontoggle = () => toggleModule(module.id, section.open);
+    section.innerHTML = `
+      <summary><span class="name">${module.name}</span><span class="priority" data-priority="${module.priority}">${module.priority}</span>
+        <span class="status">${ready ? 'Ready' : 'Pending'}</span>
+        <span class="duration">${module.time}</span><span class="module-count">${moduleDone}/${moduleTotal}</span></summary>
+      <div class="module-bar"><div class="module-fill" style="width:${moduleDone / moduleTotal * 100}%"></div></div>
+      <div class="steps">${module.steps.map(step => {
+        const id = `${module.id}-${step.id}`;
+        return `<div class="step"><label><input type="checkbox" data-checkpoint="${id}" ${state[id] === true ? 'checked' : ''} ${ready ? '' : 'disabled'} onchange="toggleCheckpoint('${id}', this.checked)">
+          <span>${step.name}</span></label>${step.href ? `<a class="notes" href="${step.href}">${step.linkName}</a>` : ''}</div>`;
+      }).join('')}</div>`;
+    content.appendChild(section);
+  });
+
+  document.getElementById('done').textContent = done;
+  document.getElementById('total').textContent = total;
+  document.getElementById('pct').textContent = total ? `${Math.round(done / total * 100)}%` : '0%';
+  document.getElementById('bar').style.width = total ? `${done / total * 100}%` : '0';
+  Object.entries(priorityTotals).forEach(([priority, counts]) => {
+    document.getElementById(`${priority.toLowerCase()}-done`).textContent = counts.done;
+    document.getElementById(`${priority.toLowerCase()}-total`).textContent = counts.total;
+  });
+  const streak = loadState(STREAK_KEY, {count:0,last:null});
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const activeStreak = [new Date().toDateString(), yesterday.toDateString()].includes(streak.last);
+  document.getElementById('streak-count').textContent = activeStreak ? streak.count : 0;
+  if (focusedCheckpoint) document.querySelector(`[data-checkpoint="${focusedCheckpoint}"]`)?.focus();
+}
+
+render();
+</script>
+</body>
+</html>
